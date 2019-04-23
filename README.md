@@ -1,2 +1,4 @@
 # ml4all-quantum-perceptron
-repo for code demoed in my talk for #ML4ALL 2019
+Repo for code demo-ed in my talk for #ML4ALL 2019
+
+Based on the C#/Q# project found here:  https://github.com/Microsoft/MLADS2018-QuantumML
