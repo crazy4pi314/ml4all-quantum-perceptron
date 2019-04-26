@@ -7,10 +7,10 @@
 
 namespace QuantumPerceptron {
 
-    open Microsoft.Quantum.Intrinsic;
+    open Microsoft.Quantum.Primitive;
     open Microsoft.Quantum.Canon;
-    open Microsoft.Quantum.Convert;
-    open Microsoft.Quantum.Arrays;
+    open Microsoft.Quantum.Extensions.Convert;
+    //open Microsoft.Quantum.Arrays;
     
     ////////////////////////////////////////////////////////////////////////
     /// Encoding dataset into qubits
@@ -111,7 +111,7 @@ namespace QuantumPerceptron {
     /// alpha      : The model parameter used for classification
     /// dataPoints : An array of training vectors (individual floating-point numbers)
     /// labels     : An array of training labels (0 or 1)
-    /// nSamples   : The number of times each point is classified; larger values give higher accuracy but longer run time
+    /// nIterations   : The number of times each point is classified; larger values give higher accuracy but longer run time
     /// # Result
     /// The success rate of classification for the given model parameter.
     ////////////////////////////////////////////////////////////////////////
@@ -119,11 +119,13 @@ namespace QuantumPerceptron {
         alpha : Double, 
         dataPoints : Double[], 
         labels : Int[],
-        nSamples: Int) : Double {
+        nIterations: Int) : Double {
+        
+        Message($"Estimating classifier success rate at {alpha}...");
         
         let N = Length(dataPoints);
         // 
-        //let nSamples = 201;
+        //let nIterations = 201;
         // Define a mutable variable to store the number of correctly classified points in the dataset
         mutable nCorrectPoints = 0;
         
@@ -136,20 +138,20 @@ namespace QuantumPerceptron {
                 // Define a mutable variable to store the number of successful classification runs
                 mutable nCorrectClassificationRuns = 0;
                 
-                // Classify i-th data point by running classification circuit nSamples times
-                for (j in 1 .. nSamples) {
+                // Classify i-th data point by running classification circuit nIterations times
+                for (j in 1 .. nIterations) {
                     // Prepare data qubit and label qubit in a state which encodes the j-th data point
                     EncodeDataInQubits(dataPoint, label, dataQubit, labelQubit);
 
                     // Run classification on the prepared qubits and count the runs when it succeeded
-                    if (Validate(dataQubit, labelQubit)) {
-                        set nCorrectClassificationRuns += 1;
+                    if (Classify(alpha, dataQubit, labelQubit)) {
+                        set nCorrectClassificationRuns = nCorrectClassificationRuns + 1;
                     }
                 }
                 
                 // The point in the dataset has been classified correctly if 
                 // the share of runs on which classification succeeded is greater than 50%.
-                if (nCorrectClassificationRuns * 2 > nSamples) {
+                if (nCorrectClassificationRuns * 2 > nIterations) {
                     set nCorrectPoints = nCorrectPoints + 1;
                 }
             }
@@ -160,6 +162,6 @@ namespace QuantumPerceptron {
         
         // Return the success rate of the classification (the percentage of points that have been classified correctly)
         // Note that you need IntAsDouble library function to convert integer numbers to doubles explicitly
-        return IntAsDouble(nCorrectPoints) / IntAsDouble(N);
+        return ToDouble(nCorrectPoints) / ToDouble(N);
     }
 }
